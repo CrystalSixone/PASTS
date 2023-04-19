@@ -1,9 +1,8 @@
-name=20230419_DUET_validate
+name=DUET_bt_validate
 DATA_ROOT=../datasets
 
 train_alg=dagger
 
-# 对clip特征做的修改
 features=vitbase
 ft_dim=768
 
@@ -15,9 +14,9 @@ seed=0
 
 
 outdir=${DATA_ROOT}/R2R/
-speaker_path=${DATA_ROOT}/R2R/speaker/20230418_r2r_speaker_vit_lr5e-5/ckpts/best_both_bleu
+speaker_path=${DATA_ROOT}/R2R/speaker/speaker_vit/ckpts/best_both_bleu
 aug_path=${DATA_ROOT}/R2R/annotations/prevalent_aug_train_enc.json
-resume_file=${DATA_ROOT}/R2R/follower/20220614_r2r_ft_transpeaker_vit_original/ckpts/best_val_unseen
+resume_file=${DATA_ROOT}/R2R/follower/finetuned/ckpts/best_val_unseen
 
 flag="--root_dir ${DATA_ROOT}
       --dataset r2r
@@ -42,7 +41,7 @@ flag="--root_dir ${DATA_ROOT}
       --max_action_len 15
       --max_instr_len 200
 
-      --batch_size 2
+      --batch_size 8
       --lr 1e-5
       --iters 200000
       --log_every 1000
@@ -64,12 +63,4 @@ flag="--root_dir ${DATA_ROOT}
       --submit
       "
 
-# train
 CUDA_VISIBLE_DEVICES='0' python -u r2r/main_nav.py $flag
-      
-
-# test
-# CUDA_VISIBLE_DEVICES='4' python r2r/main_nav.py $flag  \
-#       --tokenizer bert \
-#       --resume_file /data/ssd0/w61/tjg_duet/datasets/R2R/navigator/20220614_r2r_ft_transpeaker_vit_original/ckpts/best_val_unseen \
-#       --submit --test
