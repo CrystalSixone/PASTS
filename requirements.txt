@@ -1,0 +1,16 @@
+easydict
+h5py
+networkx
+nltk
+numpy
+opencv-python
+Pillow
+protobuf
+psutil
+scikit-learn
+scipy
+spacy
+tensorboard
+tensorboardX
+tqdm
+transformers
