@@ -183,7 +183,6 @@ class PASTSEncoder(nn.Module):
         if not already_dropfeat: 
             action_inputs[...,:args.image_feat_size] = self.drop_feat(action_inputs[...,:args.image_feat_size])
         ctx = self.down_size(action_inputs) 
-
         if not already_dropfeat:
             feature_inputs[...,:args.image_feat_size] = self.drop_feat(feature_inputs[...,:args.image_feat_size])
 
@@ -195,10 +194,12 @@ class PASTSEncoder(nn.Module):
             feature_inputs, 
             feature_inputs  
         )
-        
+
         enc_inputs = enc_inputs.view(batch_size, max_length, -1) 
         attns = attns.view(batch_size,max_length,-1) 
 
+        if args.use_drop:
+            enc_inputs = self.drop(enc_inputs)
         enc_outputs = self.pos_emb(enc_inputs.transpose(0,1)).transpose(0,1) 
 
         enc_self_attns = []
@@ -224,6 +225,8 @@ class PASTSDecoder(nn.Module):
         dec_inputs = dec_inputs.to(torch.int64)
         dec_outputs = self.embedding(dec_inputs) 
 
+        if args.use_drop:
+            dec_outputs = self.drop(dec_outputs)
         dec_outputs = self.pos_emb(dec_outputs.transpose(0,1)).transpose(0,1) 
         dec_self_attn_pad_mask = get_attn_pad_mask(dec_inputs,dec_inputs).cuda()
         dec_self_attn_subsequence_mask = get_attn_subsequence_mask(dec_inputs).cuda()

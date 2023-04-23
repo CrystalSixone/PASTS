@@ -48,7 +48,7 @@ class GMapNavAgent(Seq2SeqAgent):
             'txt_ids': seq_tensor, 'txt_masks': mask
         }
 
-    def _panorama_feature_variable(self, obs, noise=None):
+    def _panorama_feature_variable(self, obs):
         ''' Extract precomputed features into variable. '''
         batch_view_img_fts, batch_loc_fts, batch_nav_types = [], [], []
         batch_view_lens, batch_cand_vpids = [], []
@@ -83,8 +83,6 @@ class GMapNavAgent(Seq2SeqAgent):
 
         # pad features to max_len
         batch_view_img_fts = pad_tensors(batch_view_img_fts).cuda()
-        if noise is not None:
-            batch_view_img_fts *= noise
         batch_loc_fts = pad_tensors(batch_loc_fts).cuda()
         batch_nav_types = pad_sequence(batch_nav_types, batch_first=True, padding_value=0).cuda()
         batch_view_lens = torch.LongTensor(batch_view_lens).cuda()
@@ -385,7 +383,7 @@ class GMapNavAgent(Seq2SeqAgent):
                     gmap.node_step_ids[obs[i]['viewpoint']] = t + 1
 
             # graph representation
-            pano_inputs = self._panorama_feature_variable(obs, noise)
+            pano_inputs = self._panorama_feature_variable(obs)
             pano_embeds, pano_masks = self.vln_bert('panorama', pano_inputs)
             avg_pano_embeds = torch.sum(pano_embeds * pano_masks.unsqueeze(2), 1) / \
                               torch.sum(pano_masks, 1, keepdim=True)

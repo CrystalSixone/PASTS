@@ -29,7 +29,6 @@ Use the following command to train the speaker:
 cd map_nav_src
 bash scripts/train_r2r_speaker.sh
 ```
-Four kinds of features can be chosen: `resnet`,  `vitbase`, `clip640`, and `clip768`.
 
 ## 3. Validate the speaker
 Use the following command to validate the speaker:
