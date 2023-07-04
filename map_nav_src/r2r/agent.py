@@ -94,10 +94,12 @@ class GMapNavAgent(Seq2SeqAgent):
         batch_nav_types = pad_sequence(batch_nav_types, batch_first=True, padding_value=0).cuda()
         batch_view_lens = torch.LongTensor(batch_view_lens).cuda()
 
+        already_dropout = False if noise is None else True
         return {
             'view_img_fts': batch_view_img_fts, 'loc_fts': batch_loc_fts, 
             'nav_types': batch_nav_types, 'view_lens': batch_view_lens, 
             'cand_vpids': batch_cand_vpids,
+            'already_dropout': already_dropout
         }
 
     def _nav_gmap_variable(self, obs, gmaps):

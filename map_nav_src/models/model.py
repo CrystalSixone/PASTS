@@ -26,7 +26,8 @@ class VLNBert(nn.Module):
             return txt_embeds
 
         elif mode == 'panorama':
-            batch['view_img_fts'] = self.drop_env(batch['view_img_fts'])
+            if not batch['already_dropout']:
+                batch['view_img_fts'] = self.drop_env(batch['view_img_fts'])
             if 'obj_img_fts' in batch:
                 batch['obj_img_fts'] = self.drop_env(batch['obj_img_fts'])
             pano_embeds, pano_masks = self.vln_bert(mode, batch)
