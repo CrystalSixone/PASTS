@@ -48,7 +48,7 @@ class GMapNavAgent(Seq2SeqAgent):
             'txt_ids': seq_tensor, 'txt_masks': mask
         }
 
-    def _panorama_feature_variable(self, obs):
+    def _panorama_feature_variable(self, obs, noise=None):
         ''' Extract precomputed features into variable. '''
         batch_view_img_fts, batch_loc_fts, batch_nav_types = [], [], []
         batch_view_lens, batch_cand_vpids = [], []
@@ -58,14 +58,21 @@ class GMapNavAgent(Seq2SeqAgent):
             # cand views
             used_viewidxs = set()
             for j, cc in enumerate(ob['candidate']):
-                view_img_fts.append(cc['feature'][:self.args.image_feat_size])
+                if noise is None:
+                    view_img_fts.append(cc['feature'][:self.args.image_feat_size])
+                else:
+                    view_img_fts.append(cc['feature'][:self.args.image_feat_size]*noise)
                 view_ang_fts.append(cc['feature'][self.args.image_feat_size:])
                 nav_types.append(1)
                 cand_vpids.append(cc['viewpointId'])
                 used_viewidxs.add(cc['pointId'])
             # non cand views
-            view_img_fts.extend([x[:self.args.image_feat_size] for k, x \
-                in enumerate(ob['feature']) if k not in used_viewidxs])
+            if noise is None:
+                view_img_fts.extend([x[:self.args.image_feat_size] for k, x \
+                    in enumerate(ob['feature']) if k not in used_viewidxs])
+            else:
+                view_img_fts.extend([x[:self.args.image_feat_size]*noise for k, x \
+                    in enumerate(ob['feature']) if k not in used_viewidxs])
             view_ang_fts.extend([x[self.args.image_feat_size:] for k, x \
                 in enumerate(ob['feature']) if k not in used_viewidxs])
             nav_types.extend([0] * (36 - len(used_viewidxs)))
@@ -329,6 +336,7 @@ class GMapNavAgent(Seq2SeqAgent):
             batch = self.env.batch.copy()
             speaker.env = self.env
             insts = speaker.infer_batch(featdropmask=noise) 
+            noise = noise.cpu().numpy() 
             new_insts = []
             for i in range(len(insts)):
                 length = len(insts[i])
@@ -383,7 +391,7 @@ class GMapNavAgent(Seq2SeqAgent):
                     gmap.node_step_ids[obs[i]['viewpoint']] = t + 1
 
             # graph representation
-            pano_inputs = self._panorama_feature_variable(obs)
+            pano_inputs = self._panorama_feature_variable(obs,noise=noise)
             pano_embeds, pano_masks = self.vln_bert('panorama', pano_inputs)
             avg_pano_embeds = torch.sum(pano_embeds * pano_masks.unsqueeze(2), 1) / \
                               torch.sum(pano_masks, 1, keepdim=True)
