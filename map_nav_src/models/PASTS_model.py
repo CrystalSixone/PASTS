@@ -96,6 +96,7 @@ class MultiHeadAttention(nn.Module):
         self.W_V = nn.Linear(K_hidden_size, d_v * n_heads, bias=False)
         self.fc = nn.Linear(n_heads * d_v, Q_hidden_size, bias=False)
         self.dropout = nn.Dropout(args.speaker_dropout)
+        self.dot_product = ScaledDotProductAttention()
     def forward(self, input_Q, input_K, input_V, attn_mask=None):
         residual, batch_size = input_Q, input_Q.size(0)
         Q = self.W_Q(input_Q).view(batch_size, -1, self.n_heads, d_k).transpose(1,2)  
@@ -107,7 +108,7 @@ class MultiHeadAttention(nn.Module):
             Q = self.dropout(Q)
             K = self.dropout(K)
             V = self.dropout(V)
-        context, attn = ScaledDotProductAttention()(Q, K, V, attn_mask)
+        context, attn = self.dot_product(Q, K, V, attn_mask)
         context = context.transpose(1, 2).reshape(batch_size, -1, self.n_heads * d_v)
         output = self.fc(context)
         output = nn.LayerNorm(self.hidden_size).cuda()(output + residual)
@@ -118,17 +119,10 @@ class PoswiseFeedForwardNet(nn.Module):
     def __init__(self, hidden_size):
         super(PoswiseFeedForwardNet, self).__init__()
         self.hidden_size = hidden_size
-        if args.use_drop:
-            self.fc = nn.Sequential(
-                    nn.Linear(hidden_size, d_ff, bias=False),
-                    nn.ReLU(), 
-                    nn.Dropout(args.speaker_dropout),
-                    nn.Linear(d_ff, hidden_size, bias=False)
-                )
-        else: 
-            self.fc = nn.Sequential(
+        self.fc = nn.Sequential(
                 nn.Linear(hidden_size, d_ff, bias=False),
                 nn.ReLU(), 
+                nn.Dropout(args.speaker_dropout),
                 nn.Linear(d_ff, hidden_size, bias=False)
             )
     def forward(self, inputs):

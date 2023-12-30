@@ -54,7 +54,7 @@ def construct_sub_instrs(anno_dir, dataset, splits, tokenizer, max_instr_len=512
             new_item['instr_encoding'] = tokenizer.encode_sentence(instr)
             del new_item['instructions']
 
-            if j < len(ast.literal_eval(item['new_instructions'])): # some sub instructions are less than gt instr.
+            if j < len(ast.literal_eval(item['new_instructions'])): # some sub instructions are shorter than gt instr.
                 # add punctuation and EOS into the sub instructions
                 sub_instr = ast.literal_eval(item['new_instructions'])[j]
                 sub_chunk_view = item['chunk_view'][j]
@@ -66,7 +66,8 @@ def construct_sub_instrs(anno_dir, dataset, splits, tokenizer, max_instr_len=512
                         speaker_progress.append(progress)
                         total_count += 1
 
-                speaker_progress.append(1.0) # EOS
+                # speaker_progress.append(1.0) # EOS
+                speaker_progress.extend([1.0,1.0,1.0]) # Multiple EOS for buffering
                 progress_end_mask = [0]*(max_instr_len - len(speaker_progress)) 
                 speaker_progress = speaker_progress + progress_end_mask
                 new_item['sub_instr'] = sub_instr

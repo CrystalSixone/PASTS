@@ -1,9 +1,9 @@
-name=speaker_vit
+name=20231229_speaker_clip768_debugScaledDotProduct
 DATA_ROOT=../datasets
 
 train_alg=dagger
 
-features=vitbase
+features=clip768
 
 ngpus=1
 seed=0
@@ -29,4 +29,4 @@ flag="--root_dir ${DATA_ROOT}
       "
 
 # train
-CUDA_VISIBLE_DEVICES='0' python -u r2r/main_nav.py $flag
+CUDA_VISIBLE_DEVICES='4' python -u r2r/main_nav.py $flag

@@ -8,6 +8,7 @@ args = parse_args()
 import r2r.speaker_utils as utils
 
 import models.PASTS_model as speaker_model 
+from utils.logger import print_progress
 
 import torch.nn.functional as F
 from torch.autograd import Variable
@@ -60,6 +61,8 @@ class Speaker():
             loss.backward()
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), 20.)
             self.optimizer.step()
+
+            print_progress(i, iters, prefix='Progress:', suffix='Complete', bar_length=50)
 
         return losses, progress_loss
 

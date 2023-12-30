@@ -126,7 +126,5 @@ class All_Scorer():
             else:
                 print("%s: %0.3f"%(method, score))
                 total_scores[method] = score
-        
-        print('*****DONE*****')
-        for key,value in total_scores.items():
-            print('{}:{}'.format(key,value))
+        return total_scores
+    

@@ -359,8 +359,7 @@ def train_speaker(args, train_env, val_envs, speaker_tok=None):
         writer.add_scalar("loss/train_loss",train_loss,idx)
         writer.add_scalar("loss/train_progress_loss",progress_loss,idx)
 
-        print()
-        write_to_record_file("Iter: %d" % idx,record_file)
+        write_to_record_file("\n****** Iter: %d" % idx,record_file)
         write_to_record_file("Train loss: %.2f" %train_loss, record_file)
 
         # Evaluation
@@ -434,10 +433,17 @@ def train_speaker(args, train_env, val_envs, speaker_tok=None):
 
 def valid_speaker(args, val_envs, speaker_tok, write_result=True, compute_coco=False):
     import tqdm
+    default_gpu = is_default_gpu(args)
     speaker = Speaker(args, val_envs, speaker_tok)
     speaker.model.eval()
     speaker.load(args.speaker_ckpt_path)
     bleu_scorer = Bleu_Scorer()
+    
+    if default_gpu:
+        with open(os.path.join(args.log_dir, 'validation_args.json'), 'w') as outf:
+            json.dump(vars(args), outf, indent=4)
+        record_file = os.path.join(args.log_dir, 'validation.txt')
+        write_to_record_file(str(args) + '\n\n', record_file)
 
     if compute_coco:
         # need pycocoevalcap
@@ -462,7 +468,7 @@ def valid_speaker(args, val_envs, speaker_tok, write_result=True, compute_coco=F
             save_data.append(temp_data)
         precisions = bleu_scorer.compute_scores(save_data) # [0,1,2,3]
         bleu_score = precisions[4]
-        print('Bleu:{}\tBleu_1:{}\tBleu_4:{}'.format(bleu_score,precisions[0],precisions[3]))
+        write_to_record_file('Bleu:{}\tBleu_1:{}\tBleu_4:{}'.format(bleu_score,precisions[0],precisions[3]), record_file)
 
         if write_result:
             pd_data = pd.DataFrame(save_data)
@@ -478,7 +484,10 @@ def valid_speaker(args, val_envs, speaker_tok, write_result=True, compute_coco=F
                 inference[item['path_id']] = item['Inference']
                 ground_truth[item['path_id']] = item['Ground Truth']
             all_scorer = All_Scorer(inference, ground_truth)
-            all_scorer.compute_scores()
+            total_scores = all_scorer.compute_scores()
+            write_to_record_file('*****DONE*****', record_file)
+            for key,value in total_scores.items():
+                write_to_record_file('{}:{}'.format(key,value), record_file)
 
 def main():
     args = parse_args()

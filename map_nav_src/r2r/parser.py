@@ -103,7 +103,7 @@ def parse_args():
     parser.add_argument("--speaker", default=None)
     parser.add_argument('--maxDecode', type=int, default=120, help="max input instruction")
     parser.add_argument('--use_speaker',default=False,action='store_true')
-    parser.add_argument('--use_drop',action='store_true',default=True)
+    parser.add_argument('--use_drop',action='store_true',default=False)
     parser.add_argument('--speaker_dropout', type=float, default=0.2)
     parser.add_argument('--w',default=10.,type=float)
     parser.add_argument('--lamda',default=0.8,type=float)
@@ -123,7 +123,7 @@ def parse_args():
     parser.add_argument("--speaker_ckpt_path",type=str,default='') # The loading path of speaker
     parser.add_argument('--speaker_layer_num',default=6,type=int) 
     parser.add_argument('--speaker_head_num',default=6,type=int)
-    parser.add_argument('--compute_coco',action='store_true',default=False)
+    parser.add_argument('--compute_coco', action='store_true', default=False)
 
     # others
     parser.add_argument("--train",type=str,required=True) # follower, speaker, valid_follower, valid_speaker
@@ -167,14 +167,14 @@ def postprocess_args(args):
     args.fg_anno_dir = os.path.join(ROOTDIR, 'R2R', 'annotations','FG')
 
     # Build paths
-    if 'speaker' in args.train:
+    if args.train == 'speaker':
         args.output_dir = os.path.join(args.output_dir,'speaker',args.name)
-    elif 'scorer' in args.train:
-        args.output_dir = os.path.join(args.output_dir,'scorer',args.name)
-    elif 'follower' in args.train:
+    elif args.train == 'follower':
         args.output_dir = os.path.join(args.output_dir,'follower',args.name)
-    elif 'valid' in args.train:
-        args.output_dir = os.path.join(args.output_dir,'valid',args.name)
+    elif args.train == 'valid_speaker':
+        args.output_dir = os.path.join(args.output_dir,'valid_speaker',args.name)
+    elif args.train == 'valid_follower':
+        args.output_dir = os.path.join(args.output_dir,'valid_follower',args.name)
 
     # Build paths
     args.ckpt_dir = os.path.join(args.output_dir, 'ckpts')
